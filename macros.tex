@@ -1,0 +1,61 @@
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\PS}{\mathcal{P}}
+\newcommand{\bracket}[1]{\langle #1 \rangle}
+\newcommand{\ttt}[1]{\texttt{#1}}
+
+
+\newenvironment{ditem}[1][]
+    {\begin{itemize}[label=--, topsep=-12pt,
+    leftmargin = *, #1]
+     \setlength\itemsep{0em}}
+    {\end{itemize}}
+
+\newcommand{\cbox}[2]{
+    \centering{\fbox{\parbox{#1}{#2}} \par}
+}
+
+\newcommand{\contribBox}[2]{
+{\centering{\fbox{\parbox{\textwidth}{\centering \textit{Collaborators}: #1 (Room #2)
+}} \par}}
+}
+
+\floatname{algorithm}{Procedure}
+
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{exmp}{Example}[section]
+\newtheorem{lemma}{Lemma}[section]
+
+
+\newenvironment{mintedcpp}[0]
+{%
+  \VerbatimEnvironment
+  \begin{minted}[
+               mathescape,
+               linenos,
+               numbersep=5pt,
+               gobble=2,
+               frame=lines,
+               framesep=2mm]{cpp}%
+}
+{%
+  \end{minted}%
+}
+
+\setlength{\headheight}{14pt}
+%\setlength{\parindent}{0pt}
+%\setlength{\parskip}{6pt}
+
+\newenvironment{shortsol}[0]
+{%
+    \textit{Solution}.
+    \begin{adjustwidth}{2em}{2em}
+}
+{%
+    \end{adjustwidth}
+}

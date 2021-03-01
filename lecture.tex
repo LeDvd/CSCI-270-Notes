@@ -1,0 +1,730 @@
+\documentclass[11pt]{article}
+
+\input{packages}
+\input{macros}
+
+\pagestyle{fancy}
+\fancyhead[L]{David Wen}
+\fancyhead[C]{}
+\fancyhead[R]{CSCI 270}
+
+\begin{document}
+
+\tableofcontents
+\newpage
+
+\section{Stable Matching}
+\begin{tcolorbox}
+\begin{itemize}
+    \item Simple problem definition: match $n$ men and $n$ women such that none of them want to leave their marriage.
+    \item A \textbf{perfect matching} $S'$ is a matching with the property that each member of $M$ and each member of $W$ appear in exactly one pair in $S'$.
+    \item A \textbf{stable matching} is a perfect matching that has no instabilities.
+    \item The \textbf{Gale-Shapley Algorithm} is guaranteed to find one stable matching, and the proposer is advantaged.
+\end{itemize}
+\end{tcolorbox}
+
+\subsection{Problem set up}
+\begin{itemize}
+    \item Let $M$ be the set of men and $W$ the set of women.
+    \item Each man $m \in M$ ranks all women, where the first woman is the most preferred and that there are no ties. $P_{m_i} = \lbrace w_{i_1}, w_{i_2}, ..., w_{i_n} \rbrace$. Each $w \in W$ does the same with the men.
+    \item The marriages $(m,w)$ and $(m', w')$ are unstable if $m$ prefers $w'$ to $w$ and $w'$ prefers $m$ to $m'$.
+    \item Take as input as preference lists for a set of $n$ men and $n$ women, and as output a set of $n$ marriages with no instabilities.
+    
+\end{itemize}
+\subsection{Gale-Shapley Algorithm}
+\begin{enumerate}
+    \item Every unpaired man will propose to the most preferred woman that he has not proposed to.
+    \item When a woman is proposed to, they will enter an engagement with the more preferred man.
+    \item Repeat until there are no more single men, at which point we have $n$ marriages!
+\end{enumerate}
+
+In pseudocode:
+\begin{verbatim}
+    while there are single men:
+        for m in singles:
+            m proposes to w_k, where k is the number of times he has proposed
+            w chooses pref(m, m')
+\end{verbatim}
+\subsection{Proof of correctness}
+\begin{enumerate}
+    \item From the woman's perspective, she starts single, and once she gets engaged she can only get into better engagements.
+    \item From the man's perspective, he starts single, gets engaged, and he may drop repeatedly only to settle for a lower-ranking woman.
+    \item Algorithm terminates in at most $n^2$ iterations because there are only $n^2$ possible matches.
+    \item Solution is guaranteed to be a perfect matching:
+\end{enumerate}
+
+{\cbox{\textwidth}{
+\textbf{Proof by contradiction}: Assume an instability exists in our solution involving the pairs $(m,w)$ and $(m',w')$. \textit{Contradiction 1:} If $m$ did not propose to $w'$ at some point, then $w$ must be higher than $w'$ on his list. \textit{Contradiction 2:} If $m$ did propose to $w'$ at some point, then $w'$ must have rejected $m''$, a man she prefers more, in favor of $m$.}}
+
+\subsection{Complexity Analysis}
+\begin{enumerate}
+    \item \textit{Identify a single man $m$ from the singles pool.} Because we do not care which single man proposes, any data structure for the pool will have constant access time, and this step occurs in \texttt{O(1)} time.
+    \item \textit{Have $m$ propose to a woman $w$ that he has not proposed to.} Have an $n \times n$ array \texttt{ManPref} of men's preferences and an $n$-sized array \texttt{next} for the number of proposals each man has made. Therefore, \texttt{ManPref[m,i]} is $m$'s $i^{th}$ preference. $w$ will be selected by \texttt{ManPref[m, next[m]]}. All these operations work in constant time, so this step is \texttt{O(1)} time.
+    \item \textit{Determine $w$'s status.} Keep an array of size $n$ \texttt{current} where \texttt{current[w]} is null if $w$ is not engaged, and $m$ if she is engaged. This is also \texttt{O(1)} time.
+    \item \textit{Determine which man $w$ prefers.} Let \texttt{WomanRanking} be an $n$-sized array where the index corresponds to the man's ID, and the data stored is the preference. Creating \texttt{WomanRanking} takes \texttt{O($n^2$)} time, but occurs only once. Comparing men will therefore take \texttt{O(1)} time.
+    \item \textit{Put $m$ back in the pool.} This takes \texttt{O(1)} time.
+    \item \textbf{Conclusion:} Since preparation is \texttt{O($n^2$)} and the algorithm runs in constant time but at a most of $n^2$ times, the entire algorithm will run in \texttt{O($n^2$)} time.
+\end{enumerate}
+\section{Runtime}
+\begin{tcolorbox}
+\begin{itemize}
+    \item A function $f(n) = O(g(n))$ iff there exists positive constraints $c$ and $n_0$ such that $0 \leq f(n) \leq c \cdot g(n)$ for all $n \geq n_0$.
+
+    \item A function $f(n) = \Omega(g(n))$ iff there exists positive constraints $c$ and $n_0$ such that $0 \leq c \cdot g(n) \leq f(n)$ for $n \geq n_0$.
+    
+    \item A function $f(n) = \Theta(g(n))$ iff there exists positive constants $c_1, c_2, n_0$ such that $0 \leq c_1 \cdot g(n) \leq f(n) \leq c_2 \cdot g(n)$ for all $n \geq n_0$.
+
+    \item \textit{Note}: we formally write $O(g(n)) = \{ f(n) \; | \; 0 \leq f(n) \leq x \cdot g(n) \}$ -- it is a set of functions with the given constraints (constraints including $c > 0, n \geq n_0$. The notation is equivalent for big-O, big-omega, and big-theta notation).
+\end{itemize}
+\end{tcolorbox}
+
+\subsection{Table of Runtimes}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|c|c}
+    \toprule
+        Algorithm & Worst Case & Best Case \\
+        \midrule
+        Linear Search & $\Theta(n)$ & $\Theta(1)$ \\ 
+        Binary Search & $\Theta(\log(n))$ & $\Theta(1)$ \\
+        Insertion Sort & $\Theta(n^2)$ & $\Theta(n)$ \\
+        MergeSort & $\Theta(n \log n)$ & $\Theta(n \log n)$ \\
+    \bottomrule
+    \end{tabular}
+    \caption{Table of runtimes for commonly encountered algorithms. Extraneous and obvious descriptions (e.g. $\Omega(1), O(2^n)$) are excluded.}
+    \label{tab:week2_runtimes}
+\end{table}
+ 
+\subsection{Comparing Algorithms}
+\subsubsection{Hierarchy of Functions}
+\begin{enumerate}
+    \item Exponential
+    \item Polynomial
+    \item Logarithmic
+\end{enumerate}
+\subsubsection{Examples}
+\begin{exmp}
+Algorithm A is in $O(4^nn^3\log(n))$, Algorithm B is in $O(3^nn^8\log(n)^2)$. Which algorithm runs faster?
+\end{exmp} 
+\textit{Answer:} Since big-O is not a tight bound, we cannot actually determine which algorithm runs faster. Furthermore, because we typically use worst-case runtimes to describe algorithms, it can be possible that an algorithm in $\Theta(2^n)$ outperforms an algorithm in $\Theta(n^3)$ in normal use, for example.
+
+\begin{exmp}
+You write an improvement on MergeSort where you switch from MergeSort to Insertion Sort once the sub-arrays are small enough such that Insertion Sort is faster. What is the improved runtime?
+\end{exmp}
+It is still $\Theta(n \log n)$ -- it will not be slower than $\Theta(n \log n)$ even though Insertion Sort is $\Theta(n^2)$ because it is actually faster on smaller arrays, and it won't be reduced to something like $\Theta(n)$ because it is still dominated by MergeSort.
+
+\section{Graph Algoirhtms}
+\begin{tcolorbox}
+Why search? You can find out if there is a path from node A to node B, and you can find all nodes that are reachable from node A. Here we review our favorite algorithms BFS and DFS.
+\end{tcolorbox}
+\subsection{BFS}
+Breadth First Search generates a BFS tree. Each node on level $n$ in a BFS tree is $n$ nodes away from the starting point (the root node), assuming the BFS tree is unweighted. BFS runs in $O(n+m)$ time.\footnote{Recall that $n$ is the number of nodes and $m$ is the number of edges.} This is the same complexity for finding if there is a path from A to B and for finding all the nodes that can be reached from A.
+
+\subsection{DFS}
+Depths First Search generates a DFS tree. Unlike the BFS tree, the DFS tree does not include information regarding the distance from the root. Like BFS, it takes $O(m+n)$ time.
+
+\subsection{Bipartite Graphs}
+A \textbf{bipartite} graph is 2-colorable. To determine if a graph is bipartite, take the BFS tree and assign $X$ to nodes of odd distance and $Y$ to the nodes of even distance, and match it to the graph. If two adjacent nodes are assigned to the same group, it does \textit{not} necessarily imply the graph is not two-colorable --- it is dependent on the root.
+
+\begin{theorem}
+If a graph $G$ is bipartite, then it cannot contain an odd-length cycle.
+\end{theorem}
+
+Expanding on this, in any given BFS tree, edges not in the tree can only exists between nodes on the same level. In this case, it makes an odd-length cycle, and the existence of an odd-length cycle does not depend on the starting point. Say the parent node is at level $i$, and the edge making a cycle is between two nodes at level $j$. Then the length of the cycle will be $2(j-i)+1$, which is odd!
+
+\vspace{12pt}
+\noindent \textbf{Algorithm}:
+\begin{enumerate}
+    \item Run BFS starting from any node $s$. Label each node $X$ or $Y$ depending on the level on the BFS tree.
+    \item Go back through the edges and examine the labels. If all edges have $X$ on one end and $Y$ on the other, then the graph is bipartite. Otherwise, it is not.
+\end{enumerate}
+Both the above steps run in $O(m+n)$ time, so the entire algorithm runs in $O(m+n)$ times.
+
+\subsection{Strongly Connected Graphs}
+A directed graph is a \textbf{strongly connected} if there is a path from any point to any other point in the graph. A brute force solution would be to run BFS/DFS from every node in the graph. A graph is strongly connected iff every search finds all nodes in the graph. This runs in $O(mn + n^2)$, but this is slow.
+
+To find a better solution, we can use the concept of \textit{mutual reachability}. If nodes $U, V$ are mutually reachable and $V, W$ are also mutually reachable, then $U,V,W$ are all mutually reachable from each other. We can also transpose the graph $G$. In the \textit{transpose} of G, $G^T$, all edges will go in the opposite direction. This can be done in $O(m+n)$ time.
+
+Putting mutually reachability and the transpose together, first we can run BFS/DFS on $G$ tarting from node $S$. If we find a path from $S$ to every node, then take the transpose $G^T$. Then we run BFS/DFS on node $S$ in $G^T$. If we can find every node from $S$ in $G^T$, then we know $G$ is strongly connected. This works because $S$ can reach every node, and every node can reach $S$. Therefore, every node is mutually reachable; that is, every node can reach every other node through $S$.
+
+\vspace{12pt}
+\noindent\textbf{Algorithm:}
+\begin{enumerate}
+    \item Run BFS/DFS on the graph to find all nodes.
+    \item Create $G^T$.
+    \item Run BFS/DFS on $G^T$ to find all nodes.
+\end{enumerate}
+Because every step runs in $O(m+n)$, this algorithm runs in $O(m+n)$.
+
+\section{Greedy Algorithms}
+\begin{tcolorbox}
+An \textbf{greedy} algorithm seeks a solution by seeking to optimize its solution at every step. This approach is not guaranteed to find the optimal solution, as it can get stuck at some local optimum.
+\end{tcolorbox}
+\subsection{The Interval Scheduling Problem}
+The problem takes in a set of requests $\{1, ..., n \}$, where the $i^{th}$ request starts at $s(i)$ and ends at $f(i)$. The output is the largest-compatible subset of these requests. For example, we have a bunch of requests to use the auditorium, and we want to book as many groups as possible (not to have the auditorium in as much use as possible). 
+
+\subsubsection{Candidate Algorithms}
+\begin{enumerate}
+    \item \textit{Take the event with the earliest start time:} this doesn't work because the earliest one can take the entire time and block out every other request.
+    \item \textit{Take the event with the shortest time:} this doesn't work because the shortest request can overlap with two requests that don't overlap.
+    \item \textit{Take the event with the least number of overlaps:} this doesn't work because a pile-up of events can occur, where the one with the least overlap can block out the optimal solution.
+    \item \textit{Take the event with the earliest end time:} this is optimal!
+\end{enumerate}
+
+\subsubsection{Solution}
+\begin{verbatim}
+    R = set of requests and A is empty
+    while R is not empty:
+        choose a request i in R that has the smallest finish time
+        add i to A
+        delete all requests from R that are incompatible with i
+\end{verbatim}
+
+\subsubsection{Proof of Correctness}
+We need to show that 1) $A$ is a compatible set and 2) $A$ is an optimal set. 1) is fairly trivial because once a request is selected, incompatible requests are removed.
+
+To prove optimalness, say $|A| = k$, and consider an optimal solution $O$. We need to show that $|A| = |O|$. Let $A = \{i_1, ..., i_k\}$ and $O = \{j_1, ..., j_m\}$, so our goal is to show $k=m$. To prove correctness for a greedy algorithm, we need to show that the greedy algorithm is the same as or better than the optimal solution at every step; in this problem, we need to show $\forall r \leq k, f(i_r) \leq f(j_r)$:
+\begin{proof}
+Use induction:
+\begin{adjustwidth}{2em}{2em}
+
+\textit{Base case:} $f(i_1) \leq f(j_1)$, because our algorithm chooses the event with the earliest finishing time in the first step. \\[.2em]
+\textit{Inductive hypothesis:} assume $\forall r$, $f (i_{r-1}) \leq f(j_{r-1})$.\\[.2em]
+\textit{Inductive step:} show that $f(i_r) \leq f(j_r)$. Since we know that $f(i_{r-1}) \leq f(j_{r-1})$, then at the very worst $i_r = j_r$, i.e. the same event can be scheduled in both $A$ and $O$. Otherwise, there can exist some event $i_r$ that is compatible with $i_{r-1}$ that is not compatible with $j_{r-1}$, and if $i_r$ finishes earlier than $j_r$ we see that the inductive hypothesis holds.
+\end{adjustwidth}
+\end{proof}
+Now prove that $|A| = |O|$. Assume that there exists some request $j_{k+1} \in O, j_{k+1} \not\in A$. However, since $j_{k+1}$ was compatible with $j_k$, then it must also be compatible with $i_k$ since $f(i_k) \leq f(j_k)$. Therefore, $j_{k+1}$ cannot exist, and $|A| = |O|$.
+
+\subsubsection{Improved Implementation}
+\begin{enumerate}
+    \item Sort requests in order of finish time, and label in this order, such that $f(i) \leq f(j), i < j$. $\Theta(n \log n)$.
+    \item Select requests in order of increases $f(i)$, always selecting the lowest ones. Then iterate through the intervals in this order until reaching the first interval for which $s(j) \geq f(i)$. $\Theta(n)$.
+    \item Therefore, this algorithm runs in $\Theta(n \log n)$.
+\end{enumerate}
+
+\subsection{Scheduling to Minimize Lateness}
+Our parameters have changed: every request has a deadline, rather than a specified start and end time. We want to minimize the \textbf{maximum} lateness. We'll use a new notation: $$L_i = f(i) - d_i$$
+where $L_i$ is the lateness for the job, $L_i \geq 0$, and $d_i$ is the deadline. For example, let's say we have two options:
+\begin{enumerate}
+    \item Job 1 is late by 5 hours, and job 2 is late by 6 hours.
+    \item Job 1 is late by 0 hours, and job 2 is late by 7 hours.
+\end{enumerate}
+We would prefer solution 1, since solution 1 is late by 6 hours, while solution 2 is late by 7. How do we minimize the maximum lateness?
+\subsubsection{Candidate Algorithms}
+\begin{itemize}
+    \item \textit{Schedule the smallest job first:} if we have a short job $j_1$ that has a very far deadline, and a long job $j_2$ that has a very close deadline, then scheduling the short job first can push the long job over the deadline. There is a better solution in this scenario: do $j_2$ first, then $j_1$.
+    \item \textit{Smallest slack first:} if we have a short $j_1$ with some slack, and longer $j_2$ with 0 slack, scheduling $j_2$ first results in a lateness of $L_1$. However, the other way will have a lateness of $L_2 < L_1$, since the delay is the length of $j_1$.
+    \item \textit{Earliest deadline first:} no counterexamples, because this is the best solution.
+\end{itemize}
+\subsubsection{Solution}
+Schedule jobs in order of their deadlines without any gaps between jobs. That was short.
+\subsubsection{Proof of Correctness}
+We will take an \textit{exchange argument} solution: assume there exists an optimal solution and show that we can apply a set of transformations to our solution to turn it into the optimal one.\footnote{This type of approach tends to works well for sequencing problems, i.e. coming up with an optimal sequence.}
+\begin{enumerate}
+    \item There is an optimal solution with no gaps. Therefore, if our solution has a gap, we can just shift tasks earlier by the appropriate amount.
+    \item Jobs with identical deadlines can be scheduled in any order without affecting maximum lateness. The length of time it takes to finish all jobs will be the same, and from the given it doesn't matter what task goes at the end: the deadline will always be $d$. Therefore, we end up with the same maximum lateness.
+    \item \textbf{Define:} schedule $A'$ has an \textit{inversion} if a job $i$ with deadline $d_i$ is scheduled before job $j$ with an earlier deadline. \textit{Since we are scheduling in order of deadlines, our solution cannot contain inversions.}
+    \item All schedules with no inversions and no idle time have the same maximum lateness. If we have no duplicate deadlines and no idle times, then there is only one ordering of jobs. If we do have duplicate deadlines, then the order we schedule these jobs does not matter (principle 2). 
+    \item There is an optimal schedule that has no inversions and no idle time.
+        \begin{proof}
+        Let's say there is an inversion; we have tasks ordered $a,x,y,z,b$, such that $d_a, d_b$ are inverted. Therefore, we can assign $d_a = 5, d_b = 3, d_x = 6, d_y = 6$. We see that if there is an inversion, then the deadlines of tasks cannot increase monotonically. Let's say further that we have two adjacent inverted jobs, $i,j$ such that $d_j < d_i$, where they are inverted. By moving job $j$ earlier, we cannot have increased the maximum lateness due to job $j$. By moving job $i$ later, we also cannot have increased the maximum lateness, since now the maximum deadline is now $d_i$, while the two tasks $i,j$ take the same total time. Therefore, $L_{i, improved} = d_i - d_j$. 
+        \end{proof}
+    \item Therefore, if there is an optimal solution that has inversions, we can eliminate the inversions one by one such that there are no inversions. Thus, we proved there exists an optimal schedule with no inversions and no idle time. We have also proved that all solutions with no inversions and no idle time has the same maximum solutions, so our solution must also be optimal.
+\end{enumerate}
+\section{Priority Queues}
+\begin{tcolorbox}
+A priority queue has to be able to perform two operations quickly:
+\begin{enumerate}
+    \item Inserting an element into the set.
+    \item Finding the smallest element in the set.
+\end{enumerate}
+\end{tcolorbox}
+\subsection{Implementations}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|c|c}
+    \toprule
+        Implementation & \texttt{find\_min} & \texttt{insert} \\ \midrule
+        Unsorted Array & O($n$) & O($1$)  \\
+        Sorted Array & O($1$) & O($n$) \\
+        Unsorted Linked List & O($n$) & O(1) \\
+        Sorted Linked List & O(1) & O($n$) \\
+        Binary Heap & O(1) & O($\log n$) \\
+    \bottomrule
+    \end{tabular}
+    \caption{Candidate implementations for a priority queue.}
+    \label{tab:pq_implements}
+\end{table}
+\subsection{Binary Trees and Heaps}
+\begin{tcolorbox}
+\begin{itemize}
+    \item A binary tree with $n$ nodes and of depth k is \textbf{complete} iff its nodes correspond to the nodes which are numbered 1 to $n$ in the full binary tree of depth $k$. 
+    \item A binary tree of depth $k$ with has exactly $2^k-1$ nodes is called a \textbf{full} binary tree.
+    \item A \textbf{(max) binary heap} is a complete binary tree with the property that the value of the key at each node is at least as large as the values at its children.
+\end{itemize}
+\end{tcolorbox}
+Remember that we can represent a full binary tree as an array using some clever math. Let's say the array starts at index 1. Then:
+\begin{itemize}
+    \item \texttt{Parent(i)} = $\lfloor \frac{i}{2} \rfloor$ if $i \neq 1$. Otherwise it is the root.
+    \item \texttt{Lchild(i)} = $2i$ if $2i \leq n$. Otherwise it has no left child.
+    \item \texttt{Rchild(i)} = $2i+1$ if $2i+1 \leq n$. Otherwise it has no right child.\footnote{Division by 2 can be done quickly by a right shift. For example, say we have the number 011010 (26). The shift is 001101 (13). Multiplying by 2 is done equivalently by a left shift. Finding $2i+1$ can be done with a left shift, followed by an increment. All these are very fast operations.}
+\end{itemize}
+
+\subsubsection{Operations}
+\begin{itemize}
+    \item To \textbf{find the max}, just look at the root: O(1).
+    \item To \textbf{insert} a node, we insert at the end of the array, then trickle it up until it's in the right place. This runs in O($\log n$) time, since there are at most $\log n$ levels in the tree.
+    \item To \textbf{extract} the max value, return the root and move the last element to the top. Then trickle it down. This runs in O($\log n$) time, since again there are at most $\log n$ levels in the tree.
+    \item To \textbf{delete} at index $i$, you move the last element to $i$, then check if you need to bubble up or trickle down. Takes O($\log n$) time, as is tradition.
+    \item To \textbf{modify} an element at index $i$, you bubble it up or down as usual. O($\log n$).
+    \item To \textbf{construct} a heap from an array of size $n$, it would take O($n\log n$) using $n$ inserts. However, to get linear time performance, build the heap bottom-up. We make $\frac{n}{2}$ heaps of size 1, which requires no operations. Then we combine two of these new heaps with a third element, making $\frac{n}{4}$ heaps of size 3. We need 1 swap per heap at most to make them heaps. Again, we combine two of these heaps, making $\frac{n}{8}$ heaps of size 7. Repeating this process, our last heap node (the root) takes at most $\log n$ swaps. Adding these up, we get O($n$) time:
+    \begin{align*}
+        T &= \frac{n}{4} + 2 \cdot \frac{n}{8} + 3 \cdot \frac{n}{16} + ... + \log n  \\
+        \frac{T}{2} &= \frac{n}{8} + 2\cdot \frac{n}{16} + 3\cdot \frac{n}{32} + ... + \frac{1}{2} \log n \\
+        T - \frac{T}{2} &=\frac{n}{4} + \frac{n}{8} + \frac{n}{16} + ... = \frac{n}{2} \rightarrow T = n
+    \end{align*}
+    \item To \textbf{merge} two binary heaps of size $n$, it takes O($n$) time using the construction method.
+\end{itemize}
+
+\subsection{Binomial Heap}
+\begin{tcolorbox}
+A \textbf{binomial tree} $B_k$ is an ordered tree defined recursively:
+\begin{itemize}
+    \item A binomial tree $B_0$ consists of one node.
+    \item The binomial tree $B_k$ consists of 2 binomial trees $B_{k-1}$ that are linked together such that the root of one is the leftmost child of the root of the other.
+\end{itemize}
+
+We see that $B_k$, we must have \textit{exactly} $2^k$ nodes in the tree. It's called a binomial tree because at each level $i$, there is $\binom{k}{i}$ nodes at each level. \\[0.5em]
+A \textbf{binomial heap} $H$ is a set of binomial trees that satisfies the following properties:
+\begin{itemize}
+    \item Each binomial tree in $H$ obeys the min-heap property.
+    \item For any non-negative integer $k$, there is at most one binomial tree in $H$ whose root has degree $k$.
+\end{itemize}
+\end{tcolorbox}
+
+Let's say we have $n$ elements to store in a binomial heap. We can represent $n$ in binary to determine which binomial trees we need. For instance, let $n = 20 = 10100$. Then $H = \{B_2, B_4\}$.
+
+\subsubsection{Operations}
+\begin{itemize}
+    \item To \textbf{find the minimum}, we have to do a linear search on all the roots; we have at most $\log n$ trees. O($\log n$).
+    \item To \textbf{insert}, we only have to merge trees until the binomial heap property is replenished. Merging is constant time because we just have to reassign pointers, and at most we have $\log n$ merges (if $n = 2^k-1$). O($\log n$).
+\end{itemize}
+
+\subsection{Fibonacci Heap}
+Not much discussed, but we'll talk about amortized time operations --- basically we need to clean up the heap, which is expensive, but we only do this a few times, making it overall efficient. Hence our detour into amortized cost analysis (below).
+
+\subsubsection{Amortized cost analysis}
+\textbf{Amortized cost analysis}: aggregate cost of operations into one operation, which averages out to be better. To perform aggregate analysis:
+\begin{itemize}
+    \item Show that a sequence of $n$ operations, for all $n$, takes worst-case time $T(n)$ total.
+    \item Following this logic, the amortized (average) cost per operation will be $\frac{T(n)}{n}$. This is \textbf{not} the average case analysis -- \textit{operations} can have an amortized cost, but \textit{algorithms} cannot.
+\end{itemize}
+\begin{exmp}
+If we have the following code:
+\begin{verbatim}
+    for i from 1 to n:
+        push or pop or multipop
+\end{verbatim}
+Push and pop are O($n$), while multipop removes all elements and takes O($n$). What is our worst case runtime complexity?
+\end{exmp}
+O($n^2$) is a safe upper bound. However, note that \texttt{multipop} takes O($n$) time if there are $n$ elements on the stack. A sequence of $n$ pushes takes O($n$) time, and \texttt{multipop} takes O($n$) in worst case. In any case, $T(n) = O(n)$, so when averaged across the $n$ push operations, the average cost is $\frac{O(n)}{n} = O(1)$. Therefore, our worst case runtime complexity is $\Theta(n)$.
+
+Another way to do do amortized cost analysis is the \textit{accounting method}:
+\begin{itemize}
+    \item Assign different charges (amortized cost) by trial and error to different operations.
+    \item If the charge for an operation exceeds its cost, we store it as credit.
+    \item The credit can help pay for operations whose actual cost is higher than their amortized cost.
+    \item The total credit at anytime is the total amortized cost minus the total actual cost.
+    \item \textbf{NOTE:} the credit can never be negative.
+\end{itemize}
+\begin{exmp}
+Use the accounting method to find the amortized cost of the previous example.
+\end{exmp}
+First, let's try assigning a charge of 1 to each operation. For example, if we push, then push, we have a total credit of 0 (charge is 2, cost is 2 since push is constant). Then if we multipop, the actual cost is 2, so our credit goes negative.
+
+Since that didn't work, we can assign a charge of 2 to push, and 0 to pop and multipop. With this assignment, everything works and is great. We can show this because if we do $n$ pushes, we have a net balance of $2n - n = n$. After a multipop, our credit goes down by $n$ to 0, but that's fine. Therefore, all amortized costs in this example are in constant time, $O(1)$, so the amortized cost for the \texttt{for} loop is $O(n)$.
+
+\subsubsection{Fibonacci Heap Implementation}
+\textbf{Fibonacci heaps} are loosely based on binomial heaps. They are a collection of min-heap trees like Binomial heaps, but the trees are not constrained to be binomial trees, and the trees are not ordered. Essentially, the trees are kept unorganized, and we procrastinate the cleanup.
+
+When we \textit{insert} into a tree, we just keep it as a mess, inserting into the root list. But when we \textit{remove} the smallest element, we transform the trees back into a binomial heap. 
+
+The takeaway is to learn the following table:
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|c|c|c}
+    \toprule
+         & Binary Heap & Binomial Heap & Fibonacci Heap \\ \midrule
+       Find-Min  & $O(1)$ & $O(\log n)$ & O(1) \\
+       Insert & $O(\log n)$ & $O(\log n)$ & $O(1)$ \\
+       Extract-Min & $O(\log n)$ & $O(\log n)$ & $O(\log n)$ \\
+       Delete & $O(\log n)$ & $O(\log n)$ & $O(\log n)$ \\
+       Decrease-Key & $O(\log n)$ & $O(\log n)$ & $O(1)$ \\
+       Merge & $O(n)$ & $O(\log n)$ & $O(1)$ \\
+       Construct & $O(n)$ & $O(n)$ & $O(n)$ \\ 
+    \bottomrule
+    \end{tabular}
+    \caption{The runtimes of the three heap implementations that we should know.}
+    \label{tab:heap_costs}
+\end{table}
+
+\section{Greedy Graphs}
+\subsection{The Shortest-Path Problem}
+We have a graph $G = (V,E)$ with $w(U,V) \geq 0$ for each edge $(U,V) \in E$. Find the shortest path from $s \in V$ to every node in $V-s$.
+\subsubsection{Dijkstra's Algorithm}
+\begin{enumerate}
+    \item Start with a set $S$ of vertices whose final shortest path we already know.
+    \item At each step, find a vertex $U \in V-S$ with shortest distance from $S$.
+    \item Add $U$ to $S$, assign distance to $U$, and repeat.
+\end{enumerate}
+This algorithm gives the shortest distances, so to get the shortest path, we need to store the edges used to reach each node. So at each node, we can just store a pointer to the previous node at each step.
+
+\subsubsection{Proof of Correctness}
+We want to prove that at each step, Dijkstra's finds the shortest path to a new node in the graph
+\begin{proof}
+Prove by mathematical induction:
+\begin{adjustwidth}{2em}{2em}
+\textit{Base case:} $|S| = 1$, so $S = \{s\}$ and $d(s) = 0$. \par
+\textit{Inductive hypothesis:} assume the claim holds when $|S| = k$ for all $k \geq 1$.
+\textit{Inductive step:} let $|S| = k+1$. We need to prove that we have found the shortest path to the new node. Assume that there are two different paths $P, P'$ from $s$ to $v$, where $v \not\in S$. We add the shortest edge, $(U,V)$. Since this is the shortest path, no other path can be shorter since there are no negative edge costs.
+\end{adjustwidth}
+\end{proof}
+
+\subsubsection{Implementation}
+\begin{verbatim}
+    S = null
+    Priority queue Q has all nodes V, where d(v) is the key value.
+    while S != V:
+        v = extract_min(Q)
+        S = S + {v}
+        for each vertex v in adj(v)
+            if d(v) > d(v) + l
+                decrease_key(Q, v, d(v) + l)
+\end{verbatim}
+\subsubsection{Runtime Analysis}
+Initializing the PQ is $O(n)$. The \texttt{while} loop runs $n$ times, since we go over all the nodes. The \texttt{for} loop runs in $O(n)$ time. The worst number of decrease-key operations is $O(m)$. 
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|c|c|c}
+    \toprule
+        & Binary Heap & Binomial Heap & Fibonacci Heap \\ \midrule
+         $n$ extract\_min & $n \log n$ & $n \log n$ & $n \log n$ \\
+         $m$ decrease\_key & $m \log n$ & $m \log n$ & $m$ \\ \midrule
+         Total & $O(m \log n)$ & $O(m \log n)$ & $O(n \log n + m)$ \\
+    \midrule
+    Sparse Graph (let $m = n$) & $O(n \log n)$ & $O(n \log n)$ & $O(n \log n)$ \\
+    Dense Graph (let $m = n^2$) & $O(n^2 \log n)$ & $O(n^2 \log n)$ & $O(n^2)$ \\
+    \bottomrule
+    \end{tabular}
+    \caption{Runtimes depending on the data structure. Since we assume our graph is connected, we know $m \geq n$, so we can substitute $m$ for $n$ in the total. Note that still, there is overhead, meaning if $n$ and $m$ are not large enough, the Fibonacci Heap may not be the best.}
+    \label{tab:my_label}
+\end{table}
+\subsection{The MST Problem}
+Find the minimum cost network that connects all nodes in $G$. A \textbf{spanning tree} is a tree that covers all nodes of a graph. A \textbf{minimum spanning tree (MST)} is a spanning tree with the minimum total edge cost, which is what we want to find to solve this problem.
+
+We can use \textit{Prim's Algorithm}, \textit{Kruskal's Algorithm}, or \textit{Reverse-Delete}:
+\begin{itemize}
+    \item \textit{Kruskal's}: sort edges by weight, then add to the graph without adding a cycle.
+    \item \textit{Prim's}: start at a node $s$. At each step, add a new node with lowest edge weight.
+    \item \textit{Reverse-Delete}: start with the full graph. Sort edges by weight, then delete edges as long as you don't disconnect the graph.
+\end{itemize}
+
+\begin{tcolorbox}
+\begin{theorem}
+Let $S$ be any subsets of nodes that is neither empty nor equal to all of $V$, and let edge $e = (V,W)$ be the minimum cost edge with one end in $S$ and the other end in $V-S$. Then every MST contains the edge $e$, assuming no ties.
+\label{th:mst}
+\end{theorem}
+\end{tcolorbox}
+
+Let's prove the previous statement to use in proving the correctness of the other algorithms.
+\begin{proof}
+Proof by contradiction. Suppose $e$ is not part of a MST $T$. Then there must be another path in $T$ from $U$ to $V$. Let's say $T$ includes some edge $e' = (V', U')$, where $cost(e) < cost(e')$. However, then $T$ is not a MST, because we can eliminate $e'$ and replace it with $e$, and the new tree will have a lowest cost.
+\end{proof}
+
+\subsubsection{Proofs of Correctness}
+\begin{proof}
+\textbf{Kruskal's}\par
+Let's say we insert an edge between $v, w$; $v \in S, w \not \in S$ (or we would have a cycle). This means that this is the lowest cost edge to connect $w$ to $S$. Then by Theorem \ref{th:mst}, the edge must be in every MST.
+\end{proof}
+
+\begin{proof}
+\textbf{Prim's}\par
+At some iterations, we will connect an edge $e$ from $S$ to $V-S$. We pick the lowest cost edge out, so again by Theorem~\ref{th:mst}, the edge must be in every MST.
+\end{proof}
+
+\begin{proof}
+\textbf{Reverse-Delete}\par 
+\begin{lemma}
+The highest cost edge in a cycle cannot be part of a MST. \label{lem:rd}
+\end{lemma}
+We just use Lemma~\ref{lem:rd} to remove all cycles.
+\end{proof}
+
+\subsubsection{Implementations}
+\textbf{Prim's}\par
+It's just Dijkstra's, but you replace the distance from $s$ to just the edge weight. The runtime is $O(m \log n)$
+
+\textbf{Kruskal's}
+\begin{verbatim}
+    Create an independent set for each node
+    A = Null
+    for each vertex v in V
+        add to set
+    Sort edges of E in non-decreasing order of cost
+    for each edge (U,V) in E:
+        if find_set(U) != find_set(V)
+            A = A union {(U,V)}
+            Union(U,V)
+\end{verbatim}
+Use the \textbf{Union-Find} data structure to make things fast:
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|c|c}
+    \toprule
+         & Array Implementation& Pointer Implementation \\ \midrule
+        Make set & $O(1)$ & $O(1)$ \\
+        Find set & $O(1)$ & $O(\log n)$ \\
+        Union & $O(\log n)$ & $O(1)$ \\
+    \bottomrule
+    \end{tabular}
+    \caption{Runtimes for the Union-Find data structure}
+    \label{tab:un_find}
+\end{table}
+Using these runtimes, we see the runtime is $O(m \log m)$, since we're looping over edges. Note that the runtime is asympotatically equivalent to $O(m \log n)$, since if $m = n^2$, we can Kellog out the 2.
+
+\textbf{Reverse-Delete}
+\begin{verbatim}
+    sort edges in decreasing cost order
+    loop over edges in this order
+        remove edge if it does not disconnect the graph // need to run a BFS or DFS
+\end{verbatim}
+This will take $O(m^2)$, since we have to run BFS or DFS to check if we're disconnecting things.\footnote{Since this runtime is bad, no one's put their name on it. If we can find out if there's a cycle in $\log m$ time, you can put your name on it!}
+
+\newpage
+\section{Divide and Conquer Algorithms}
+\begin{tcolorbox}
+\textsc{\textbf{Divide and Conquer}} algorithms typically take the following form:
+\begin{enumerate}
+    \item \textbf{Divide} the problem into $n$ subproblems.
+    \item \textbf{Conquer}: solve the subproblems recursively, or if trivial solve the problem itself.
+    \item \textbf{Combine} the solution to the subproblems.
+\end{enumerate}
+Usually, the combine step is the most difficult part (if this step is necessary).
+\end{tcolorbox}
+\subsection{Sorting}
+\textbf{MergeSort} in more detail. Let's say we want to sort the following array:
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+    2 & 7 & 1 & 8 & 5 & 4 & 6 & 9 \\
+    \hline
+    \end{tabular}
+\end{table}
+First, We \textbf{divide} the problem into 2 subproblems, since combining two pieces is easier than 3+. We do this until the solution is trivial:
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+    \hline
+    2 & 7 & 1 & 8 & & 5 & 4 & 6 & 9 \\
+    \hline
+    \end{tabular}
+    
+    \vspace{12pt}
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+    2 & 7 & & 1 & 8 & & 5 & 4 & & 6 & 9 \\
+    \hline
+    \end{tabular}
+\end{table}
+
+Now, we \textbf{conquer} by sorting the arrays of size 2 and \textbf{combine} them recursively:
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+    2 & 7 & & 1 & 8 & & 4 & 5 & & 6 & 9 \\
+    \hline
+    \end{tabular}
+    
+    \vspace{12pt}
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+    \hline
+    1 & 2 & 7 & 8 & & 4 & 5 & 6 & 9 \\
+    \hline
+    \end{tabular}
+
+    \vspace{12pt}
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+    1 & 2 & 4 & 5 & 6 & 7 & 8 & 9 \\
+    \hline
+    \end{tabular}
+\end{table}
+
+\subsubsection{Implementation}
+\begin{algorithm}[H]
+\KwData{A is the array.}
+\If{p $<$ r}{
+    q = (p+r)//2 \;
+    mergesort(A, p, q)\;
+    mergesort(A, q+1, r)\;
+    merge(A, p, q, r)\;
+}
+\caption{MergeSort(A, p, r)}
+\end{algorithm}
+
+\subsubsection{Analysis}
+\begin{enumerate}
+    \item Divide -- Takes $O(1)$. This is just doing integer division.
+    \item Conquer -- If the original problem takes $T(n)$ time, the two subproblems take $2T(\frac{n}{2})$.
+    \item Combine -- Takes $O(n)$ on array of size $n$.
+\end{enumerate}
+
+To analyze the algorithm, we can use a \textsc{recurrence relation}:
+\begin{tcolorbox}
+The \textbf{general recurrence relation} for a divide and conquer algorithm looks like:
+$$ T(n) = \left\{ \begin{array}{cc}
+    \Theta(1) & n \leq c \\
+    aT(\frac{n}{b}) + D(n) + C(n) & n > c
+\end{array}\right.$$
+where $C(n)$ is the time to combine, $D(n)$ is the time to divide, $a$ is the number of subproblems, $\frac{n}{b}$ is the size of the subproblem, and $c$ is some threshold.
+\end{tcolorbox}
+For mergesort, the recurrence relation is as follows:
+$$ T(n) = \left\{ \begin{array}{cc}
+    \Theta(1) & n = 1 \\
+    2T(\frac{n}{2}) + O(n) + O(1) & n > 1
+\end{array}\right.$$
+
+Then, unrolling this recurrence relation, we can brute-force the solution and draw a tree, then add everything up. This tree therefore has $cn$ as the root, $2 \cdot \frac{cn}{2}$ at the second level, etc. Summing across every level, we get $cn$, and we have $\log n$ levels. Therefore:
+$$ T(n) = \Theta(n \log n)$$
+
+Alternatively, we can use the \textsc{Master Method}, where you can memorize a bunch of cases (i.e. is a cookbook method):
+\begin{tcolorbox}
+The \textbf{master method} is helpful for solving recurrences of the following form:
+$$ T(n) = aT(\frac{n}{b}) + f(n) $$
+where the constants $a,b \geq 1$, and $f(n)$ is an asymptotically positive function.
+\end{tcolorbox}
+To use the master method, we need to remember the following cases to bound $T(n)$:
+\begin{enumerate}
+    \item If $f(n) = O(n^{\log_b{a} - \epsilon})$, then the solution is $T(n) = \Theta(n^{\log_b{a}})$ for some $\epsilon > 0$.
+    \item If $f(n) = \Theta(n^{\log_b a})$, then $T(n) = \Theta(n^{\log_b{a}} \log{n})$.\footnote{in general: if $f(n) = \Theta(n^{\log_b{a}} \log^k n)$, where $k \geq 0$, then $T(n) = n^{\log_b{a}}\log^{k+1}n$.}
+    \item If $f(n) = \Omega(n^{\log_b{a} + \epsilon})$, then $T(n) = \Theta(f(n))$ for some constant $\epsilon > 0$, and if $a f(\frac{n}{b}) \leq c f(n)$ for some constant $c < 1$ and all sufficiently large $n$.
+\end{enumerate}
+We see for MergeSort that $a = b = 2$, so the function is:
+$$ n^{\log_2 2} = n^1$$
+
+Therefore, this function does not fall into the third case, since we would get $\epsilon = 0$. For MergeSort, we use case 2 and see again our runtime is $T(n) = \Theta(n \log n)$.
+
+\begin{exmp}
+Let's say our function turned out to be $n^{1.0001}$. What is the runtime of the function?
+\end{exmp}
+\hspace{2em} \textit{Solution}: This falls into the third case, so $T(n) = \Theta(n^{1.0001})$.
+
+\textit{An intuition for why the master method works}: let's say we start with a problem size of $n$ and we go to a problem of size 1. Imagine the recurrence tree: the tree will have a height of $\log_b{n}$. At level $i$, the number of nodes is $a^i$; therefore, the number of nodes at the bottom level of the tree is $a^{\log_n{b}}$. We can rewrite $a^{\log_b{n}} = n^{\log_b{a}}$. Essentially, we are counting the number of times we call the recursive function and comparing it to the cost of divide and conquer. Therefore:
+\begin{itemize}
+    \item Case 1: Complexity is driven by the number of leaf nodes in the recursion tree.
+    \item Case 3: Complexity is driven by the cost of the root node.
+    \item Case 2: Cost of operations is the same at every level of the recursion tree.
+\end{itemize}
+
+\subsection{The Stock Market Problem}
+Given the price history of a stock over the last year, where can we buy and sell 1000 shares of that stock (within a one year window) in order to maximize our profit? Note that you have to buy before selling (i.e. no shorting Gamestop).
+
+\textit{A Brute Force Solution:} at every point, we check the price. Then go through the rest the days to see what the optimal day is. This takes $(n-1) + (n-2) + ... + 1$ time, which is $\Theta(n)$.
+
+\subsubsection{Solution}
+Split the year into two problems, $P_1$ and $P_2$. Then recursively solve the subproblems. There are three cases:
+\begin{enumerate}
+    \item Buy and sell in $P_1$. Then $B = B_1$, $S = S_1$. $M = min(M_1, M_2)$, $X = max(X_1, X_2)$.
+    \item Buy and sell in $P_2$. Then $B = B_2$, $S = S_2$. $M = min(M_1, M_2)$, $X = max(X_1, X_2)$. 
+    \item Buy in $P_1$ and sell in $P_2$. Then $B = M_1$, $S = X_2$.
+\end{enumerate}
+
+\subsubsection{Analysis}
+Solve by the master method: we have $f(n) = D(n) + C(n) = \Theta(1) + \Theta(1) = \Theta(1)$, since dividing the array of prices takes constant time, and combining (choosing the case) is in constant time, since we only have to compare values. We have $n^{\log_ba} = n^{\log_22} = n$. This falls under case 1, which tells us $T(n) = \Theta(n)$.
+
+\subsection{Matrix Multiplication with Square Dense Matrices}
+We have two matrices of size $n \times x$, so the brute force method to calculate the product is $\Theta(n^3)$. Matrix multiplication is super important for computation, so getting the runtime down is super important!
+
+$$ \left[ \begin{array}{ccc}
+    a_{1,1} & \dots & a_{1, n} \\
+     & \dots & \\
+    a_{n,1} & \dots & a_{n,n} 
+\end{array}\right].
+\times 
+\left[ \begin{array}{ccc}
+    b_{1,1} & \dots & b_{1, n} \\
+     & \dots & \\
+    b_{n,1} & \dots & b_{n,n} 
+\end{array}\right]
+=
+\left[ \begin{array}{ccc}
+    c_{1,1} & \dots & c_{1, n} \\
+     & \dots & \\
+    c_{n,1} & \dots & c_{n,n} 
+\end{array}\right].
+$$
+
+\subsubsection{A Bad Solution}
+We divide each matrix into four square matrices and solve them as follows::
+$$ \left[ \begin{array}{c|c}
+    A_{11} & A_{12} \\ \hline
+    A_{21} & A_{22}
+\end{array}\right]
+\times 
+\left[ \begin{array}{c|c}
+    B_{11} & B_{12} \\ \hline
+    B_{21} & B_{22}
+\end{array}\right].
+=
+\left[ \begin{array}{c|c}
+    A_{11} \cdot B_{11} + A_{12} \cdot B_{21} & A_{11} \cdot B_{12} + A_{12} \cdot B_{22} \\ \hline
+    A_{21} \cdot B_{11} + A_{22} \cdot B_{21} & A_{21} \cdot B_{12} + A_{22} \cdot B_{22}
+\end{array}\right]
+$$
+
+$f(n) = D(n) + C(n) = \Theta(1) + \Theta(n^2) = \Theta(n^2)$. Dividing is constant, since we are storing the matrices as arrays. The combine step takes $\Theta(n^2)$ time, since we are going through $n \times n$ elements.
+
+Our $n^{\log_b a} = n^{\log_2 8} = n^3$, as we have 8 multiplications (see matrix $C$), but our tree only grows by 2 at each step (we go from $n$ to $\frac{n}{2}$ in each dimension). This is case 1, which is $T(n) = \Theta(n^3)$. How unfortunate.
+
+\subsubsection{A Better Solution --- Strassen Algorithm}
+We compute 7 $\frac{n}{2} \times \frac{n}{2}$ intermediate matrices. Since the number of matrix additions doesn't matter (note on above: we have 4 additions, but that doesn't show up), this saves on asymptotic runtime.
+\begin{align*}
+    P &= (A_{11} + A_{22})(B_{11} + B_{22}) \\
+    Q &= (A_{21} + A_{22}) B_{11} \\
+    R &= A_{11} (B_{12} - B_{22}) \\
+    S &= A_{22}(B_{21} - B_{11}) \\
+    T &= (A_{11} + A_{12})B_{22} \\
+    U &= (A_{21} - A_{11})(B_{11}+B_{12}) \\
+    V &= (A_{12} - A_{22})(B_{21} + B_{22}) \\
+    \\
+    C_{11} &= P + S - T + V \\
+    C_{12} &= R + T \\
+    C_{21} &= Q + S \\
+    C_{22} &= P - Q + R + U
+\end{align*}
+
+Then we get $n^{\log_b a} = n^{\log_2 7} \approx n^{2.81}$. This is still case 1, which is $\Theta(n^{2.81})$. Unfortunately, the implementation is hard, since there are a lot of cases where $n$ is not a clean power of 2, and that kicks up a bunch of corner cases that can cost you more than brute force.
+
+The best asymptotic runtime of algorithms that solve this algorithm is $\Theta(n^{2.31})$, though in practice the matrix must be \textit{galactic} -- essentially the constant time factor is too high to be useful.
+
+\subsection{Finding the Min and Max in an Unsorted Array}
+The brute force method is to just march along the array. For finding the min, we do $n-1$ comparisons, resulting in a total number of $2n-2$ comparisons, resulting in an asymptotic runtime of $\Theta(n)$. This runtime cannot be improved, because every element must be looked at. However, we can improve upon the number of comparisons.
+
+\subsubsection{Solution}
+We split the array into two subproblems $P_1$ and $P_2$, each with $M_1, X_1$ and $X_2, X_2$. To combine the subproblems, we just need to do 2 comparisons. Therefore, in our tree, each non-leaf node costs 2. The $n$ leaf nodes cost 0, since no comparisons need to be made; therefore, there are $n-1$ nodes left in the tree. The parents of the leaf nodes cost 1, since if one value is the minimum, the other must be the maximum; there are $\frac{n}{2}$ of these parents. Thus, we can cut down on the number of comparisons to $\frac{3}{2}n-2$.
+
+\subsection{Closest Pair of Points on a 2D Plane}
+The brute force method is $\Theta(n^2)$, where we go through every $n-1$ points to some point $p_1$, $n-2$ to some point $p_2$, etc., then find the minimum of these distances.
+
+\subsubsection{Solution}
+Divide the space in half. Again, we have three cases:
+\begin{itemize}
+    \item Case 1: both points are in $P_1$.
+    \item Case 2: both points are in $P_2$.
+    \item Case 3: one point is in $P_1$ and the other is in $P_2$.
+\end{itemize}
+Case 3 is the only case that cannot be solved recursively, since brute-force solving this solution is still $\Theta(n^2)$. To solve this case, we search the points within $\delta = min(d_1, d_2)$ of the division. The worst case occurs where all points are within the band.
+
+\end{document}
